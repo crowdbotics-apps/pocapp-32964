@@ -1,14 +1,15 @@
+from allauth.account import app_settings as allauth_settings
+from allauth.account.adapter import get_adapter
+from allauth.account.forms import ResetPasswordForm
+from allauth.account.utils import setup_user_email
+from allauth.utils import email_address_exists, generate_unique_username
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.utils.translation import ugettext_lazy as _
-from allauth.account import app_settings as allauth_settings
-from allauth.account.forms import ResetPasswordForm
-from allauth.utils import email_address_exists, generate_unique_username
-from allauth.account.adapter import get_adapter
-from allauth.account.utils import setup_user_email
-from rest_framework import serializers
 from rest_auth.serializers import PasswordResetSerializer
+from rest_framework import serializers
 
+from home.models import App, Plan, Subscription
 
 User = get_user_model()
 
@@ -74,3 +75,31 @@ class UserSerializer(serializers.ModelSerializer):
 class PasswordSerializer(PasswordResetSerializer):
     """Custom serializer for rest_auth to solve reset password error"""
     password_reset_form_class = ResetPasswordForm
+
+
+class AppSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = App
+        fields = '__all__'
+
+    def validate_user(self, user):
+        request = self.context.get("request")
+        return request.user
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = '__all__'
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=0)
+
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+
+    def validate_user(self, user):
+        request = self.context.get("request")
+        return request.user
